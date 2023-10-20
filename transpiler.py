@@ -4,6 +4,9 @@ import os
 
 class GLTranspiler:
 
+    def __init__(self) -> None:
+        self._visited = []
+
     def to_shadertoy(self, input_file: str, output_file: str):
         lines = self.__resolve_include(os.path.abspath(input_file))
         code = self.__replace_multiple_line_breaks("".join(lines))
@@ -84,6 +87,8 @@ class GLTranspiler:
             if not rel_path:
                 raise SyntaxError(f"Import seems to have syntax errors: {line}")
             base_dir = os.path.dirname(file)
-            path = os.path.join(base_dir, rel_path)
-            resolved_lines.extend([*self.__resolve_include(path), "\n\n"])
+            path = os.path.normpath(os.path.join(base_dir, rel_path))
+            if path not in self._visited:
+                self._visited.append(path)
+                resolved_lines.extend([*self.__resolve_include(path), "\n\n"])
         return resolved_lines
